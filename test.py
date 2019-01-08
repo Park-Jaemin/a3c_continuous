@@ -10,9 +10,11 @@ from torch.autograd import Variable
 import time
 import logging
 import gym
+from tensorboardX import SummaryWriter
 
 
 def test(args, shared_model):
+    writer = SummaryWriter('./tensorboardX')
     ptitle('Test Agent')
     gpu_id = args.gpu_ids[-1]
     log = {}
@@ -47,8 +49,10 @@ def test(args, shared_model):
             player.model = player.model.cuda()
             player.state = player.state.cuda()
     player.model.eval()
-    max_score = 0
+    max_score = -99999
+    ith_iter = 0
     while True:
+        ith_iter = ith_iter+1
         if player.done:
             if gpu_id >= 0:
                 with torch.cuda.device(gpu_id):
@@ -69,7 +73,8 @@ def test(args, shared_model):
                     time.strftime("%Hh %Mm %Ss",
                                   time.gmtime(time.time() - start_time)),
                     reward_sum, player.eps_len, reward_mean))
-
+            writer.add_scalar('episode reward', reward_sum, ith_iter)
+            writer.add_scalar('reward mean', reward_mean, ith_iter)
             if args.save_max and reward_sum >= max_score:
                 max_score = reward_sum
                 if gpu_id >= 0:
