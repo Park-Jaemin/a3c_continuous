@@ -10,7 +10,7 @@ from train import train
 from test import test
 from shared_optim import SharedRMSprop, SharedAdam
 import time
-
+import gym_smartmeter
 
 parser = argparse.ArgumentParser(description='A3C')
 parser.add_argument(
