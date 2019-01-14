@@ -73,8 +73,8 @@ def test(args, shared_model):
                     time.strftime("%Hh %Mm %Ss",
                                   time.gmtime(time.time() - start_time)),
                     reward_sum, player.eps_len, reward_mean))
-            writer.add_scalar('episode reward', reward_sum, ith_iter)
-            writer.add_scalar('reward mean', reward_mean, ith_iter)
+            writer.add_scalar('episode reward', -reward_sum, ith_iter)
+            writer.add_scalar('reward mean', -reward_mean, ith_iter)
             if args.save_max and reward_sum >= max_score:
                 max_score = reward_sum
                 if gpu_id >= 0:
