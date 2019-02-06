@@ -14,6 +14,12 @@ import matplotlib.pyplot as plt
 
 
 class SmartmeterEnv():
+    """
+    Difference with smartmeter_env.py
+    track self.s
+    generate y using action, x, self.s
+    step needs x as argument
+    """
     @staticmethod
     def H(p):
         p_support = p[p.nonzero()]
@@ -43,7 +49,7 @@ class SmartmeterEnv():
         for s2, y, x1, s1 in product(range(self.s_dim), range(self.y_dim), range(self.x_dim), range(self.s_dim)):
             if s2 == s1 - x1 + y:
                 px2s2_yxs[:, s2, y, x1, s1] = self.px_x[:, x1]
-        self.pz2_yz = px2s2_yxs.reshape(self.x_dim * self.y_dim, self.y_dim, self.x_dim * self.s_dim)
+        self.pz2_yz = px2s2_yxs.reshape(self.x_dim * self.s_dim, self.y_dim, self.x_dim * self.s_dim)
 
     @property
     def observation_space(self):
@@ -133,7 +139,7 @@ class SmartmeterEnv():
 
         reward = -mutual_info - time_cost / 10
         done = True if self.state[-1] > self.horizon else False
-        meta_data = {'y': y, 'mutual_info': mutual_info, 'time_cost': time_cost}
+        meta_data = {'s': self.s, 'y': y, 'mutual_info': mutual_info, 'time_cost': time_cost}
         return next_observation, reward, done, meta_data
 
 
@@ -187,9 +193,11 @@ if __name__ == "__main__":
     model = A3C_MLP(
         env.observation_space.shape[0], env.action_space, 1
     )
-    model.load_state_dict(torch.load('trained_models/smartmeter-v0.dat'))
+    #model.load_state_dict(torch.load('trained_models/smartmeter-v0.dat'))
+    model.load_state_dict(torch.load('smartmeter-v0.dat'))
     observation = env.reset()
     y_arr = np.zeros(data.size)
+    s_arr = np.zeros(data.size)
     total_reward = 0
     total_mutual_info = 0
     total_time_cost = 0
@@ -209,6 +217,7 @@ if __name__ == "__main__":
         total_time_cost = total_time_cost + time_cost
         print('y: ', y)
         y_arr[i] = y
+        s_arr[i] = meta_data['s']
 
     fig = plt.figure()
     plt.plot(y_arr)
@@ -217,6 +226,10 @@ if __name__ == "__main__":
     fig2 = plt.figure()
     plt.plot(data)
     fig2.savefig('result_fig/x.png')
+
+    fig3 = plt.figure()
+    plt.plot(s_arr)
+    fig3.savefig('result_fig/s.png')
 
     print('mutual_info: ', total_mutual_info)
     print('time_cost: ', total_time_cost)
