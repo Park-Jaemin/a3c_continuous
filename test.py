@@ -49,7 +49,7 @@ def test(args, shared_model):
             player.model = player.model.cuda()
             player.state = player.state.cuda()
     player.model.eval()
-    max_score = -99999
+    max_score = float("-inf")
     ith_iter = 0
     while True:
         ith_iter = ith_iter+1
