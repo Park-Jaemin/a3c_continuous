@@ -3,8 +3,6 @@
 
 # RL A3C Pytorch Continuous
 
-![A3C LSTM playing BipedalWalkerHardcore-v2](https://github.com/dgriff777/a3c_continuous/blob/master/demo/BPHC.gif)
-
 This repository includes my implementation with reinforcement learning using Asynchronous Advantage Actor-Critic (A3C) in Pytorch an algorithm from Google Deep Mind's paper "Asynchronous Methods for Deep Reinforcement Learning."
 
 # NEWLY ADDED A3G!!
