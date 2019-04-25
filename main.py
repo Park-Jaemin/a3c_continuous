@@ -57,9 +57,9 @@ parser.add_argument(
     help='maximum length of an episode (default: 10000)')
 parser.add_argument(
     '--env',
-    default='BipedalWalker-v2',
+    default='smartmeter-v0',
     metavar='ENV',
-    help='environment to train on (default: BipedalWalker-v2)')
+    help='environment to train on (default: smartmeter-v0)')
 parser.add_argument(
     '--shared-optimizer',
     default=True,
@@ -117,6 +117,28 @@ parser.add_argument(
     default=True,
     metavar='AM',
     help='Adam optimizer amsgrad parameter')
+parser.add_argument(
+    '--max-iter',
+    type=int,
+    default=100000,
+    metavar='MI',
+    help='Maximum number of train iteration')
+parser.add_argument(
+    '--tc-weight',
+    type=float,
+    default=0,
+    metavar='CW',
+    help='Weight of time cost calculating reward')
+parser.add_argument(
+    '--tensorboard-dir',
+    default='tensorboardX/',
+    metavar='TB',
+    help='dir to save learning graph tensorboard')
+parser.add_argument(
+    '--base-dir',
+    default='/',
+    metavar='BD',
+    help='root dir')
 
 
 # Based on
@@ -126,6 +148,7 @@ parser.add_argument(
 # training was far superior
 
 if __name__ == '__main__':
+    print("hello")
     args = parser.parse_args()
     torch.manual_seed(args.seed)
     if args.gpu_ids == -1:
@@ -134,6 +157,7 @@ if __name__ == '__main__':
         torch.cuda.manual_seed(args.seed)
         mp.set_start_method('spawn')
     env = create_env(args.env, args)
+    env.set_weight(args.tc_weight)
     if args.model == 'MLP':
         shared_model = A3C_MLP(
             env.observation_space.shape[0], env.action_space, args.stack_frames)
@@ -161,6 +185,7 @@ if __name__ == '__main__':
     p.start()
     processes.append(p)
     time.sleep(0.1)
+
     for rank in range(0, args.workers):
         p = mp.Process(target=train, args=(
             rank, args, shared_model, optimizer))
@@ -169,4 +194,7 @@ if __name__ == '__main__':
         time.sleep(0.1)
     for p in processes:
         time.sleep(0.1)
-        p.join()
+        p.join(12*600/args.workers)
+    print("main is finish")
+    for p in processes:
+        p.terminate()

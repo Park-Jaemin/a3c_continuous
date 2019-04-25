@@ -14,7 +14,7 @@ from tensorboardX import SummaryWriter
 
 
 def test(args, shared_model):
-    writer = SummaryWriter('./tensorboardX')
+    writer = SummaryWriter(args.tensorboard_dir)
     ptitle('Test Agent')
     gpu_id = args.gpu_ids[-1]
     log = {}
@@ -31,6 +31,8 @@ def test(args, shared_model):
         torch.cuda.manual_seed(args.seed)
     env = create_env(args.env, args)
     reward_sum = 0
+    mutual_info_sum = 0
+    time_cost_sum = 0
     start_time = time.time()
     num_tests = 0
     reward_total_sum = 0
@@ -62,19 +64,22 @@ def test(args, shared_model):
 
         player.action_test()
         reward_sum += player.reward
+        mutual_info_sum += player.mutual_info
+        time_cost_sum += player.time_cost
 
         if player.done:
             num_tests += 1
             reward_total_sum += reward_sum
             reward_mean = reward_total_sum / num_tests
             log['{}_log'.format(args.env)].info(
-                "Time {0}, episode reward {1}, episode length {2}, reward mean {3:.4f}".
+                "Time {0}, episode reward {1}, episode length {2}, MI {3}, TC {4}".
                 format(
                     time.strftime("%Hh %Mm %Ss",
                                   time.gmtime(time.time() - start_time)),
-                    reward_sum, player.eps_len, reward_mean))
-            writer.add_scalar('episode reward', -reward_sum, ith_iter)
-            writer.add_scalar('reward mean', -reward_mean, ith_iter)
+                    reward_sum, player.eps_len, mutual_info_sum, time_cost_sum))
+            writer.add_scalar('episode reward', reward_sum, num_tests)
+            writer.add_scalar('episode mutual info', mutual_info_sum, num_tests)
+            writer.add_scalar('episode time cost', time_cost_sum, num_tests)
             if args.save_max and reward_sum >= max_score:
                 max_score = reward_sum
                 if gpu_id >= 0:
@@ -86,6 +91,8 @@ def test(args, shared_model):
                     torch.save(state_to_save, '{0}{1}.dat'.format(args.save_model_dir, args.env))
 
             reward_sum = 0
+            mutual_info_sum = 0
+            time_cost_sum = 0
             player.eps_len = 0
             state = player.env.reset()
             time.sleep(60)

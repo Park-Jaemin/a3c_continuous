@@ -57,7 +57,7 @@ def train(rank, args, shared_model, optimizer):
         else:
             player.cx = Variable(player.cx.data)
             player.hx = Variable(player.hx.data)
-            
+
         for step in range(args.num_steps):
 
             player.action_train()

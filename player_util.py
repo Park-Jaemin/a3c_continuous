@@ -24,6 +24,8 @@ class Agent(object):
         self.info = None
         self.reward = 0
         self.gpu_id = -1
+        self.mutual_info = 0
+        self.time_cost = 0
 
     def action_train(self):
         if self.args.model == 'CONV':
@@ -86,6 +88,8 @@ class Agent(object):
         mu = torch.clamp(mu.data, -1.0, 1.0)
         action = mu.cpu().numpy()[0]
         state, self.reward, self.done, self.info = self.env.step(action)
+        self.mutual_info = self.info['mutual_info']
+        self.time_cost = self.info['time_cost']
         self.state = torch.from_numpy(state).float()
         if self.gpu_id >= 0:
             with torch.cuda.device(self.gpu_id):

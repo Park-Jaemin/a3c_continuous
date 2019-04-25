@@ -51,6 +51,11 @@ class SmartmeterEnv():
                 px2s2_yxs[:, s2, y, x1, s1] = self.px_x[:, x1]
         self.pz2_yz = px2s2_yxs.reshape(self.x_dim * self.s_dim, self.y_dim, self.x_dim * self.s_dim)
 
+        mat_file = io.loadmat("time_cost.mat")
+        self.time_cost = mat_file['time_cost_96'][0]
+        if len(time_cost) != self.horizon:
+        	raise TimeCostError('time_cost length does not match to horizon')
+
     @property
     def observation_space(self):
         """
@@ -119,6 +124,7 @@ class SmartmeterEnv():
 
         # get cost
         mutual_info = self.H(py) + self.H(pxs) - self.H(pyz)
+        '''
         time_cost = 61.6
         if (33 <= self.state[-1] <= 88):
             if (37 <= self.state[-1] <= 44 or 49 <= self.state[-1] <= 64):
@@ -126,6 +132,10 @@ class SmartmeterEnv():
             else:
                 time_cost = 84.1
         time_cost = time_cost * y
+        '''
+        time_cost = self.time_cost[self.state[-1] -1]
+        time_cost = time_cost * y
+
         # get next state
         pz2yz = self.pz2_yz * pyz
         pz2y = np.sum(pz2yz, axis=2)
